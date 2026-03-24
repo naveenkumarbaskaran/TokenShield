@@ -1,0 +1,11 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+dist/
+build/
+*.egg-info/
+.venv/
+.env
+.pytest_cache/
+.coverage
+.DS_Store
