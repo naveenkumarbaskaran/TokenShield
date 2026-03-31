@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/banner.svg" alt="TokenShield" width="700">
+
 # 🛡️ TokenShield
 
 **Real-time token cost monitoring, budget enforcement, and optimization for LLM applications.**
