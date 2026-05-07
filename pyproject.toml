@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "tokenshield"
+name = "tokenshield-ai"
 version = "2.0.0"
 description = "LLM token cost monitoring, budget enforcement, and optimization."
 readme = "README.md"
