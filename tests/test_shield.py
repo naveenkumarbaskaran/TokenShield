@@ -196,13 +196,13 @@ class TestShield:
         alerts = []
         shield = Shield(
             model="gpt-4o",
-            policy=BudgetPolicy(max_cost_per_day=0.001, alert_threshold_pct=50),
+            policy=BudgetPolicy(max_cost_per_day=0.005, alert_threshold_pct=50),
             on_alert=lambda msg: alerts.append(msg),
         )
         # Pre-load cost to trigger alert
         shield.tracker.record(RequestRecord(
             model="gpt-4o", input_tokens=100, output_tokens=25,
-            cost=0.0008, duration_ms=50, timestamp=time.time(),
+            cost=0.003, duration_ms=50, timestamp=time.time(),
         ))
         shield.call(messages=[{"role": "user", "content": "Hi"}])
         assert len(alerts) >= 1

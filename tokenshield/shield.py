@@ -165,7 +165,7 @@ class Shield:
         if sys_msgs:
             sys_tokens = estimate_message_tokens(sys_msgs)
             total_tokens = estimate_message_tokens(messages)
-            if total_tokens > 0 and sys_tokens / total_tokens > 0.5:
+            if total_tokens > 0 and sys_tokens > 500 and sys_tokens / total_tokens > 0.5:
                 suggestions.append(
                     f"System prompt is {sys_tokens:,} tokens "
                     f"({sys_tokens / total_tokens:.0%} of input). Consider compressing."
