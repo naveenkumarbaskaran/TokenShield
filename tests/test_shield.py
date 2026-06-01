@@ -252,3 +252,70 @@ class TestOptimize:
         tips = shield.optimize(messages, tools=[{"name": "t1"}])
         # Small system prompt, few tools, short history → no tips
         assert len(tips) == 0
+
+
+from tokenshield.compressor import Compressor
+from tokenshield.router import CostRouter
+from tokenshield.cache import ResponseCache
+
+
+def test_router_selects_cheap_model_for_simple_request():
+    router = CostRouter(simple="gpt-4o-mini", medium="gpt-4o", complex="gpt-4o")
+    shield = Shield(model="gpt-4o", router=router)
+    result = shield.call(messages=[{"role": "user", "content": "hi"}])
+    assert result["routed_model"] == "gpt-4o-mini"
+
+
+def test_cache_hit_returns_cached_response():
+    cache = ResponseCache()
+    shield = Shield(model="gpt-4o", cache=cache)
+    msgs = [{"role": "user", "content": "what is 2+2"}]
+    shield.call(messages=msgs)
+    result2 = shield.call(messages=msgs)
+    assert result2["cache_hit"] is True
+
+
+def test_cache_miss_on_first_call():
+    cache = ResponseCache()
+    shield = Shield(model="gpt-4o", cache=cache)
+    result = shield.call(messages=[{"role": "user", "content": "unique xyz"}])
+    assert result["cache_hit"] is False
+
+
+def test_skip_cache_forces_re_execution():
+    cache = ResponseCache()
+    shield = Shield(model="gpt-4o", cache=cache)
+    msgs = [{"role": "user", "content": "cached question"}]
+    shield.call(messages=msgs)
+    result2 = shield.call(messages=msgs, skip_cache=True)
+    assert result2["cache_hit"] is False
+
+
+def test_compressor_reduces_history():
+    compressor = Compressor(max_history_turns=1)
+    shield = Shield(model="gpt-4o", compressor=compressor)
+    msgs = [
+        {"role": "user", "content": "a"},
+        {"role": "assistant", "content": "b"},
+        {"role": "user", "content": "c"},
+        {"role": "assistant", "content": "d"},
+        {"role": "user", "content": "e"},
+    ]
+    result = shield.call(messages=msgs)
+    assert "cost" in result
+
+
+def test_cache_hit_does_not_track_cost():
+    cache = ResponseCache()
+    shield = Shield(model="gpt-4o", cache=cache)
+    msgs = [{"role": "user", "content": "cost check"}]
+    shield.call(messages=msgs)
+    cost_before = shield.tracker.cost_today
+    shield.call(messages=msgs)  # cache hit
+    assert shield.tracker.cost_today == cost_before
+
+
+def test_no_router_uses_explicit_model():
+    shield = Shield(model="gpt-4o")
+    result = shield.call(messages=[{"role": "user", "content": "hi"}])
+    assert result["routed_model"] == "gpt-4o"
