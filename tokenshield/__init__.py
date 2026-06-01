@@ -7,6 +7,7 @@ from tokenshield.pricing import PricingDB
 from tokenshield.router import CostRouter
 from tokenshield.cache import ResponseCache, MemoryBackend, DiskBackend
 from tokenshield.compressor import Compressor
+from tokenshield.replay import CostReplay
 
 __version__ = "2.1.0"
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     "MemoryBackend",
     "DiskBackend",
     "Compressor",
+    "CostReplay",
 ]
