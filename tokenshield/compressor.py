@@ -31,21 +31,23 @@ class Compressor:
         system = [m for m in messages if m.get("role") == "system"]
         convo = [m for m in messages if m.get("role") != "system"]
         # each turn = one user + one assistant message
-        keep = self.max_history_turns * 2
-        return system + convo[-keep:] if len(convo) > keep else system + convo
+        max_messages = self.max_history_turns * 2
+        if max_messages == 0:
+            return system
+        return system + convo[-max_messages:] if len(convo) > max_messages else system + convo
 
     def _truncate_system(self, messages: list[dict]) -> list[dict]:
         result = []
         for msg in messages:
             if msg.get("role") == "system":
                 content = msg.get("content", "")
-                if _estimate(content) > self.max_system_tokens:
-                    limit = self.max_system_tokens * int(CHARS_PER_TOKEN)
+                if isinstance(content, str) and _estimate(content) > self.max_system_tokens:
+                    limit = int(self.max_system_tokens * CHARS_PER_TOKEN)
                     msg = {**msg, "content": content[:limit] + " [truncated]"}
             result.append(msg)
         return result
 
     def _prune_tools(self, tools: list[dict] | None) -> list[dict] | None:
-        if tools is None:
+        if not tools:
             return None
         return tools[: self.max_tools]

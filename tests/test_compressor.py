@@ -61,3 +61,11 @@ def test_none_tools_passthrough():
     c = Compressor()
     _, result_tools = c.compress([], None)
     assert result_tools is None
+
+
+def test_history_windowing_zero_turns_drops_all_convo():
+    c = Compressor(max_history_turns=0)
+    msgs = [{"role": "system", "content": "sys"}] + _msgs(4)
+    result, _ = c.compress(msgs)
+    assert len(result) == 1
+    assert result[0]["role"] == "system"
