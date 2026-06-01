@@ -73,3 +73,14 @@ def test_cost_replay_standalone():
     report = replay.run(router=CostRouter(simple="gpt-4o-mini", medium="gpt-4o", complex="gpt-4o"))
     assert report["call_count"] == 5
     assert "savings_pct" in report
+
+
+def test_replay_with_model_override():
+    shield = Shield(model="gpt-4o")
+    for _ in range(3):
+        _call(shield, "hi")
+    report = shield.replay(model="gpt-4o-mini")
+    assert report["call_count"] == 3
+    assert report["replayed_cost"] < report["original_cost"]
+    assert report["per_model"] == {"gpt-4o-mini": 3}
+    assert report["savings"] > 0

@@ -44,6 +44,7 @@ class CostReplay:
             else:
                 replayed_model = entry["model_used"]
 
+            # pricing.get() always returns a dict (falls back to {"input": 5.00, "output": 15.00} for unknown models)
             prices = pricing.get(replayed_model)
             cost = (
                 entry["input_tokens"] * prices["input"]
@@ -52,14 +53,15 @@ class CostReplay:
             replayed_cost += cost
             per_model[replayed_model] = per_model.get(replayed_model, 0) + 1
 
-        savings = round(original_cost - replayed_cost, 6)
+        raw_savings = original_cost - replayed_cost
+        savings = round(max(raw_savings, 0.0), 6)
         savings_pct = round((savings / original_cost) * 100, 2) if original_cost > 0 else 0.0
 
         return {
             "call_count": len(log),
             "original_cost": round(original_cost, 6),
             "replayed_cost": round(replayed_cost, 6),
-            "savings": max(savings, 0.0),
-            "savings_pct": max(savings_pct, 0.0),
+            "savings": savings,
+            "savings_pct": savings_pct,
             "per_model": per_model,
         }
