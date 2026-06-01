@@ -48,3 +48,27 @@ def test_defaults():
     assert r.simple == "gpt-4o-mini"
     assert r.medium == "gpt-4o"
     assert r.complex == "gpt-4o"
+
+
+def test_empty_messages_routes_to_simple():
+    r = CostRouter(simple="mini", medium="mid", complex="big")
+    assert r.route([]) == "mini"
+
+
+def test_exactly_500_tokens_is_medium():
+    r = CostRouter(simple="mini", medium="mid", complex="big")
+    # exactly 500 tokens = 2000 chars — should be medium (not simple)
+    msgs = [_msg("x" * 2000)]
+    assert r.route(msgs) == "mid"
+
+
+def test_exactly_six_tools_is_complex():
+    r = CostRouter(simple="mini", medium="mid", complex="big")
+    tools = [{"name": f"t{i}"} for i in range(6)]
+    assert r.route([_msg("hi")], tools) == "big"
+
+
+def test_model_override_empty_string_is_not_override():
+    r = CostRouter(simple="mini", medium="mid", complex="big")
+    # empty string should NOT be treated as an override
+    assert r.route([_msg("hi")], model_override=None) == "mini"

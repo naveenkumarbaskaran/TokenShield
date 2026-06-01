@@ -12,7 +12,10 @@ COMPLEX_TOOL_THRESHOLD = 5
 SIMPLE_MAX_MESSAGES = 2
 
 
-def _estimate(text: str) -> int:
+def _estimate(text: str | list) -> int:
+    if isinstance(text, list):
+        # sum text from content blocks
+        text = " ".join(b.get("text", "") for b in text if isinstance(b, dict))
     return max(1, int(len(text) / CHARS_PER_TOKEN))
 
 
@@ -35,7 +38,7 @@ class CostRouter:
         tools: list[dict] | None = None,
         model_override: str | None = None,
     ) -> str:
-        if model_override:
+        if model_override is not None:
             return model_override
 
         tokens = _total_tokens(messages, tools)
@@ -46,7 +49,7 @@ class CostRouter:
             return self.complex
 
         if (
-            tokens <= SIMPLE_TOKEN_LIMIT
+            tokens < SIMPLE_TOKEN_LIMIT
             and tool_count == 0
             and len(convo_msgs) <= SIMPLE_MAX_MESSAGES
         ):
